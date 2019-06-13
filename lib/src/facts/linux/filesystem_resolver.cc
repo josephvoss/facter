@@ -75,6 +75,12 @@ namespace facter { namespace facts { namespace linux {
         char buffer[4096];
         while (mntent *ptr = getmntent_r(file, &entry, buffer, sizeof(buffer))) {
             string device = ptr->mnt_fsname;
+            string mtype = ptr->mnt_type;
+
+            // Skip over any non-tmpfs mount under /proc or /sys
+            if (mtype != "tmpfs" && (boost::starts_with(ptr->mnt_dir, "/proc") || boost::starts_with(ptr->mnt_dir, "/sys"))) {
+                continue;
+            }
 
             // If the "root" device, lookup the actual device from the kernel options
             // This is done because not all systems symlink /dev/root
